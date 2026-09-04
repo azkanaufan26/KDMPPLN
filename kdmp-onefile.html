@@ -1,0 +1,1308 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Dashboard Monitoring KDMP — Pemanfaatan Lahan PLN</title>
+<meta name="description" content="Monitoring rencana pemanfaatan lahan PT PLN (Persero) oleh Koperasi Desa/Kelurahan Merah Putih">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>⚡</text></svg>">
+<style>
+:root{
+  --navy:#0B2A66; --biru:#1B62D6; --biru-soft:#EFF5FF;
+  --hijau:#16A34A; --hijau-soft:#ECFDF3; --oranye:#F59E0B; --oranye-soft:#FFF7E6;
+  --merah:#DC2626; --merah-soft:#FEF2F2; --ungu:#7C3AED; --ungu-soft:#F5F3FF;
+  --teks:#0F172A; --teks-2:#64748B; --teks-3:#94A3B8; --garis:#E5EAF1; --bg:#F4F7FB;
+  --sans:'Inter',-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;
+}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:var(--bg);color:var(--teks);font-family:var(--sans);font-size:13px;-webkit-font-smoothing:antialiased}
+.app{display:flex;min-height:100vh}
+
+/* ══ Sidebar ══ */
+.side{width:186px;flex:0 0 186px;background:var(--navy);color:#fff;padding:18px 0 22px;position:sticky;top:0;height:100vh;display:flex;flex-direction:column}
+.brand{padding:0 16px 20px}
+.brand img{display:block;width:100%;max-width:138px;height:auto;background:#fff;border-radius:9px;padding:9px 11px}
+.brand .wordmark{display:none;background:#fff;border-radius:9px;padding:11px;text-align:center;font-weight:800;color:var(--navy);letter-spacing:.06em;font-size:16px}
+.nav{display:flex;flex-direction:column;gap:1px}
+.nav a{display:flex;align-items:center;gap:11px;padding:10px 18px;color:#C7D6F0;text-decoration:none;font-size:12.5px;border-left:3px solid transparent}
+.nav a:hover{background:rgba(255,255,255,.06);color:#fff}
+.nav a.on{background:var(--biru);color:#fff;border-left-color:#FCD116;font-weight:600}
+.nav svg{width:15px;height:15px;flex:0 0 15px;opacity:.9}
+.sidenote{margin:auto 14px 0;background:rgba(255,255,255,.07);border-radius:8px;padding:12px 13px;font-size:11px;color:#C7D6F0;line-height:1.6}
+.sidenote b{display:block;color:#fff;font-size:11.5px;margin-bottom:7px}
+.sidenote i{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:7px}
+
+/* ══ Main ══ */
+.main{flex:1;min-width:0;padding:20px 22px 30px}
+.topbar{display:flex;flex-wrap:wrap;gap:14px;align-items:flex-start;justify-content:space-between}
+h1{color:var(--biru);font-size:24px;font-weight:800;letter-spacing:-.02em;margin:0}
+.sub{color:var(--teks-2);font-size:13px;margin:3px 0 0}
+.per{margin:4px 0 0;font-size:12.5px;font-weight:600}
+.per span{color:var(--biru)}
+.upd{display:flex;flex-direction:column;gap:3px;align-items:flex-end;color:var(--teks-2);font-size:11.5px;text-align:right}
+.upd b{color:var(--teks);font-weight:600}
+.upd a{color:var(--biru);text-decoration:none;font-weight:600}
+.upd a:hover{text-decoration:underline}
+
+.livebar{display:flex;align-items:center;gap:9px;margin-top:12px;padding:9px 13px;border-radius:8px;font-size:12px;font-weight:600}
+.livebar.ok{background:var(--hijau-soft);color:#166534;border:1px solid #BBF7D0}
+.livebar.loading{background:var(--biru-soft);color:#1E3A8A;border:1px solid #BFDBFE}
+.livebar.bad{background:#FEF2F2;color:#991B1B;border:1px solid #FECACA}
+.livebar button{margin-left:auto;background:none;border:1px solid currentColor;color:inherit;font-family:var(--sans);font-size:11px;font-weight:700;border-radius:6px;padding:4px 10px;cursor:pointer;opacity:.75}
+.livebar button:hover{opacity:1}
+.dot{width:7px;height:7px;border-radius:50%;flex:0 0 7px}
+.dot.ok{background:#16A34A;box-shadow:0 0 0 3px rgba(22,163,74,.18)}
+.dot.bad{background:#DC2626;box-shadow:0 0 0 3px rgba(220,38,38,.18)}
+.dot.loading{background:#1B62D6;box-shadow:0 0 0 3px rgba(27,98,214,.18);animation:pulse 1.2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+
+/* ══ Filter ══ */
+.filters{display:flex;flex-wrap:wrap;gap:14px;align-items:center;background:#fff;border:1px solid var(--garis);border-radius:10px;padding:11px 14px;margin-top:16px}
+.f{display:flex;align-items:center;gap:9px}
+.f label{font-size:12px;font-weight:600;color:#334155}
+select,input[type=search]{font-family:var(--sans);font-size:12px;padding:7px 10px;border:1px solid #CBD5E1;border-radius:7px;background:#fff;color:var(--teks)}
+select{padding-right:26px;min-width:118px;max-width:230px;appearance:none;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='10' height='7'><path d='M1 1l4 4 4-4' stroke='%2364748B' stroke-width='1.6' fill='none' stroke-linecap='round'/></svg>");
+  background-repeat:no-repeat;background-position:right 9px center}
+#reset{margin-left:auto;background:var(--biru);color:#fff;border:none;border-radius:7px;padding:9px 15px;font-size:12px;font-weight:600;cursor:pointer;font-family:var(--sans);display:flex;align-items:center;gap:7px}
+#reset:hover{background:#1550B4}
+:focus-visible{outline:2px solid var(--biru);outline-offset:2px}
+
+/* ══ Kartu ══ */
+.card{background:#fff;border:1px solid var(--garis);border-radius:11px;padding:14px 16px}
+.card h2{font-size:12.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#1E293B;margin:0 0 10px}
+.card .h2sub{font-size:11px;color:var(--teks-2);margin:-6px 0 10px;font-weight:400;letter-spacing:0;text-transform:none}
+.grid4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:14px}
+.kpi{display:flex;gap:13px;align-items:flex-start}
+.ic{width:44px;height:44px;border-radius:50%;flex:0 0 44px;display:grid;place-items:center}
+.kpi .lbl{font-size:10.5px;font-weight:700;letter-spacing:.08em;color:var(--teks-2);text-transform:uppercase;margin:0}
+.kpi .big{font-size:25px;font-weight:800;letter-spacing:-.03em;margin:5px 0 0;line-height:1.1}
+.kpi .cap{font-size:11.5px;color:var(--teks-2);margin:4px 0 0;line-height:1.5}
+.progress{height:7px;background:#E8EDF5;border-radius:4px;margin-top:8px;overflow:hidden}
+.progress i{display:block;height:100%;background:var(--navy);border-radius:4px;transition:width .6s ease}
+
+/* hero progres kontrak */
+.phero{display:flex;align-items:baseline;gap:10px;flex-wrap:wrap}
+.phero .pv{font-size:30px;font-weight:800;letter-spacing:-.03em;line-height:1}
+.phero .pd{font-size:12.5px;color:var(--teks-2)}
+.pbar{height:10px;background:#E8EDF5;border-radius:5px;margin-top:11px;overflow:hidden;position:relative}
+.pbar i{display:block;height:100%;border-radius:5px;transition:width .6s ease}
+.pbar.kosong{background:repeating-linear-gradient(135deg,#EEF2F7 0 7px,#E3E9F2 7px 14px)}
+.pnote{font-size:11.5px;color:var(--teks-2);margin-top:7px;line-height:1.5}
+
+.grid-mid{display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:14px;margin-top:14px}
+.grid-2{display:grid;grid-template-columns:1.45fr 1fr;gap:14px;margin-top:14px}
+.grid-1{display:grid;grid-template-columns:1fr;gap:14px;margin-top:14px}
+svg.chart{width:100%;height:auto;display:block}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11px;color:var(--teks-2);margin-bottom:4px}
+.legend i{display:inline-block;width:11px;height:8px;border-radius:2px;margin-right:5px;vertical-align:1px}
+.callout{border:1px solid #BBF7D0;background:var(--hijau-soft);color:#166534;border-radius:7px;padding:7px 10px;font-size:11px;font-weight:600;line-height:1.45;margin-top:10px}
+.callout.warn{border-color:#FDE68A;background:var(--oranye-soft);color:#854D0E}
+
+/* daftar peringkat ala top-kontributor */
+.tk{list-style:none;margin:0;padding:0}
+.tk li{display:flex;align-items:center;gap:0;padding:5px 0;font-size:11.5px}
+.tk .no{color:var(--teks-3);font-size:10.5px;width:16px;text-align:right;flex:0 0 16px;margin-right:8px}
+.tk .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.tk .br{width:96px;height:8px;background:#F1F5F9;border-radius:3px;overflow:hidden;margin:0 8px;flex:0 0 96px}
+.tk .br i{display:block;height:100%;border-radius:3px;background:var(--navy)}
+.tk b{font-variant-numeric:tabular-nums;min-width:52px;text-align:right;font-size:11.5px}
+.tk b small{font-weight:400;color:var(--teks-2);font-size:10px}
+
+/* daftar status berikon */
+.stat-legend{list-style:none;margin:2px 0 0;padding:0;display:flex;flex-direction:column;gap:9px}
+.stat-legend li{display:flex;align-items:center;gap:8px;font-size:11.5px;color:#334155}
+.stat-legend .sym{width:16px;flex:0 0 16px;text-align:center;font-size:12px;font-weight:800}
+.stat-legend .nm{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.stat-legend .br{width:110px;height:9px;background:#F1F5F9;border-radius:3px;overflow:hidden;flex:0 0 110px}
+.stat-legend .br i{display:block;height:100%;border-radius:3px}
+.stat-legend b{font-variant-numeric:tabular-nums;min-width:22px;text-align:right}
+.stat-legend .pct{color:var(--teks-2);font-size:10.5px;min-width:34px;text-align:right}
+
+.mini{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.mini div{border:1px solid var(--garis);border-radius:9px;padding:10px 11px}
+.mini .v{font-size:22px;font-weight:800;letter-spacing:-.02em;margin:1px 0 0}
+.mini .k{font-size:10px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--teks-2);margin:0}
+.mini .s{font-size:10.5px;color:var(--teks-2);margin:2px 0 0}
+.mini .b1{border-color:#BFDBFE;background:var(--biru-soft)} .mini .b2{border-color:#BBF7D0;background:var(--hijau-soft)}
+.mini .b3{border-color:#FDE68A;background:var(--oranye-soft)} .mini .b4{border-color:#FECACA;background:var(--merah-soft)}
+
+/* ══ Tabel ══ */
+table{width:100%;border-collapse:collapse;font-size:11.5px}
+th{text-align:left;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--teks-2);border-bottom:1px solid var(--garis);padding:7px 6px;font-weight:700}
+td{padding:6px;border-bottom:1px solid #F1F5F9}
+td.num{text-align:right;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:10px;font-weight:700;padding:2px 7px;border-radius:20px;white-space:nowrap}
+.t-ok{background:var(--hijau-soft);color:#15803D}
+.t-no{background:var(--merah-soft);color:#B91C1C}
+.t-wait{background:var(--oranye-soft);color:#B45309}
+.t-none{background:#F1F5F9;color:#64748B}
+.t-idle{background:var(--biru-soft);color:#1D4ED8}
+.t-part{background:var(--oranye-soft);color:#B45309}
+.t-use{background:var(--ungu-soft);color:#6D28D9}
+.gpill{display:inline-block;font-size:9.5px;font-weight:700;padding:2px 7px;border-radius:20px;background:#F1F5F9;color:#475569;white-space:nowrap}
+
+.tbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;margin-bottom:12px}
+.tbar input[type=search]{min-width:230px}
+.tbar .btn2{font-family:var(--sans);font-size:11.5px;font-weight:600;padding:8px 13px;border:1px solid #CBD5E1;background:#fff;color:var(--teks-2);border-radius:7px;cursor:pointer}
+.tbar .btn2:hover{border-color:var(--biru);color:var(--biru)}
+.tcount{margin-left:auto;font-size:11.5px;color:var(--teks-2)}
+.twrap{overflow:auto;max-height:600px;border:1px solid var(--garis);border-radius:9px}
+.twrap table{font-size:11px}
+.twrap th{position:sticky;top:0;background:#F8FAFD;z-index:2;cursor:pointer;white-space:nowrap;user-select:none}
+.twrap th:hover{color:var(--biru)}
+.twrap th.sorted{color:var(--biru)}
+.twrap th .ar{font-size:9px;margin-left:3px;opacity:.5}
+.twrap th.sorted .ar{opacity:1}
+.twrap tbody tr{cursor:pointer}
+.twrap tbody tr:hover{background:#F8FAFD}
+.twrap .unm{font-weight:600}
+.wrap2{white-space:normal;max-width:250px;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+.empty{padding:38px 20px;text-align:center;color:var(--teks-2);font-size:12px}
+
+/* ══ Modal ══ */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(11,42,102,.45);z-index:100;align-items:center;justify-content:center;padding:24px}
+.modal-overlay.on{display:flex}
+.modal{background:#fff;border-radius:12px;max-width:860px;width:100%;max-height:86vh;display:flex;flex-direction:column;box-shadow:0 20px 50px rgba(0,0,0,.25)}
+.modal-head{display:flex;align-items:flex-start;justify-content:space-between;gap:14px;padding:16px 20px;border-bottom:1px solid var(--garis)}
+.modal-head h3{margin:0;font-size:15px;font-weight:800;color:var(--navy);line-height:1.35}
+.modal-head .msub{font-size:11.5px;color:var(--teks-2);margin-top:4px}
+.modal-head button{background:none;border:none;font-size:24px;line-height:1;color:var(--teks-2);cursor:pointer;padding:0 4px}
+.modal-head button:hover{color:var(--merah)}
+.modal-body{overflow:auto;padding:6px 20px 20px}
+.dl{display:grid;grid-template-columns:200px 1fr;gap:0}
+.dl dt{padding:9px 0;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--teks-2);font-weight:700;border-bottom:1px solid #F1F5F9}
+.dl dd{padding:9px 0;margin:0;border-bottom:1px solid #F1F5F9;font-size:12px;line-height:1.55;white-space:pre-line;word-break:break-word}
+.dl dd a{color:var(--biru)}
+
+/* ══ Analisis ══ */
+.anal{display:grid;grid-template-columns:1.15fr 1fr;gap:14px;margin-top:14px}
+.anal h3{font-size:12.5px;font-weight:700;letter-spacing:.03em;text-transform:uppercase;color:#1E293B;margin:18px 0 8px}
+.anal h3:first-child{margin-top:0}
+.anal p{font-size:12.5px;line-height:1.65;color:#1E293B;margin:0 0 10px}
+.anal .src{font-size:11px;color:var(--teks-2);font-style:italic;margin-top:14px}
+.metrik{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px}
+.metrik div{border:1px solid var(--garis);border-radius:9px;padding:11px 12px}
+.metrik .k{font-size:9.5px;font-weight:700;letter-spacing:.06em;text-transform:uppercase;color:var(--teks-2);margin:0}
+.metrik .v{font-size:19px;font-weight:800;letter-spacing:-.02em;margin:3px 0 0}
+.metrik .s{font-size:10.5px;color:var(--teks-2);margin:2px 0 0;line-height:1.45}
+.ins{background:linear-gradient(160deg,#EFF6FF,#F8FBFF);border-color:#BFDBFE}
+.ins ul{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:10px}
+.ins li{display:flex;gap:9px;font-size:12px;line-height:1.5;color:#1E293B}
+.ins li .bul{flex:0 0 16px;font-weight:800;color:var(--biru)}
+
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.foot{margin-top:16px;font-size:11px;color:var(--teks-2);display:flex;flex-wrap:wrap;gap:16px;justify-content:space-between}
+
+/* ══ Routing ══ */
+[data-view]{display:none}
+[data-view].on{display:block}
+section.grid4[data-view].on{display:grid}
+section.grid-mid[data-view].on{display:grid}
+section.grid-2[data-view].on{display:grid}
+section.grid-1[data-view].on{display:grid}
+section.anal[data-view].on{display:grid}
+.filters[hidden]{display:none}
+
+@media (max-width:1240px){.grid-mid,.grid-2,.anal{grid-template-columns:1fr}.grid4{grid-template-columns:1fr 1fr}}
+@media (max-width:860px){.side{display:none}.grid4,.mini{grid-template-columns:1fr 1fr}.dl{grid-template-columns:1fr}.dl dt{border-bottom:none;padding-bottom:0}}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}.dot.loading{animation:none!important}}
+@media print{
+  .side,.filters,.livebar,.tbar,#reset,.upd a{display:none!important}
+  body{background:#fff}.main{padding:0}
+  .card{break-inside:avoid;border-color:#ccc}
+  .twrap{max-height:none;overflow:visible}
+  [data-view]{display:block!important}
+  section.grid4[data-view]{display:grid!important}
+  section.grid-mid[data-view],section.grid-2[data-view],section.grid-1[data-view],section.anal[data-view]{display:grid!important}
+}
+</style>
+</head>
+<body>
+<div class="app">
+
+  <!-- ══ Sidebar ══ -->
+  <aside class="side">
+    <div class="brand">
+      <img src="pln-logo.png" alt="PLN" onerror="this.style.display='none';this.nextElementSibling.style.display='block'">
+      <div class="wordmark">PLN</div>
+    </div>
+    <nav class="nav" id="nav">
+      <a href="#dashboard" data-route="dashboard" class="on">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
+        Dashboard</a>
+      <a href="#data" data-route="data">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M9 10v10"/></svg>
+        Data Permohonan</a>
+      <a href="#analisis" data-route="analisis">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 3v18h18"/><path d="M7 15l4-5 3 3 5-7"/></svg>
+        Analisis</a>
+      <a href="#cetak" data-route="cetak">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M6 9V3h12v6"/><rect x="4" y="9" width="16" height="7" rx="2"/><path d="M6 16h12v5H6z"/></svg>
+        Cetak Laporan</a>
+    </nav>
+    <div class="sidenote">
+      <b>Keterangan status</b>
+      <div><i style="background:#16A34A"></i>Disetujui</div>
+      <div><i style="background:#F59E0B"></i>Menunggu konfirmasi</div>
+      <div><i style="background:#DC2626"></i>Tidak disetujui</div>
+      <div><i style="background:#94A3B8"></i>Belum ada keputusan</div>
+    </div>
+  </aside>
+
+  <!-- ══ Konten ══ -->
+  <main class="main">
+    <div class="topbar">
+      <div>
+        <h1>Dashboard Monitoring KDMP</h1>
+        <p class="sub">Rencana Pemanfaatan Lahan PT PLN (Persero) oleh Koperasi Desa/Kelurahan Merah Putih</p>
+        <p class="per">Pengelola: <span>Divisi Umum &amp; Aset Properti</span></p>
+      </div>
+      <div class="upd">
+        <div>Sumber data: <b>Google Sheets — Data Koperasi Merah Putih</b></div>
+        <div id="upd-time">Memuat…</div>
+        <a id="link-sheet" href="#" target="_blank" rel="noopener">Buka sheet sumber ↗</a>
+      </div>
+    </div>
+
+    <div class="livebar loading" id="livebar">
+      <span class="dot loading"></span>
+      <span id="live-text">Menarik data langsung dari Google Sheets…</span>
+      <button type="button" id="btn-refresh">↻ Muat ulang</button>
+    </div>
+
+    <!-- Filter global -->
+    <section class="filters" id="filters">
+      <div class="f"><label for="f-kelompok">Kelompok</label>
+        <select id="f-kelompok"><option value="">Semua kelompok</option></select></div>
+      <div class="f"><label for="f-unit">Unit</label>
+        <select id="f-unit"><option value="">Semua unit</option></select></div>
+      <div class="f"><label for="f-persetujuan">Persetujuan</label>
+        <select id="f-persetujuan"><option value="">Semua status</option></select></div>
+      <div class="f"><label for="f-status">Status aset</label>
+        <select id="f-status"><option value="">Semua status aset</option></select></div>
+      <div class="f"><label for="f-search" class="sr-only">Cari</label>
+        <input type="search" id="f-search" placeholder="Cari pemohon, lokasi, kota…" autocomplete="off"></div>
+      <button id="reset" type="button">↺ Reset Filter</button>
+    </section>
+
+    <!-- ═══ VIEW: DASHBOARD ═══ -->
+    <section class="grid4" data-view="dashboard" id="kpis"></section>
+
+    <section class="grid-mid" data-view="dashboard">
+      <div class="card">
+        <h2>Persetujuan Tindak Lanjut</h2>
+        <div class="h2sub">Keputusan Divisi GA atas tiap permohonan</div>
+        <ul class="stat-legend" id="list-persetujuan"></ul>
+        <div id="callout-persetujuan"></div>
+      </div>
+      <div class="card">
+        <h2>Status Aset yang Dimohon</h2>
+        <div class="h2sub">Kondisi lahan saat permohonan diajukan</div>
+        <ul class="stat-legend" id="list-status"></ul>
+      </div>
+      <div class="card">
+        <h2>Jenis Sertipikat</h2>
+        <div class="h2sub">Alas hak lahan yang dimohon</div>
+        <ul class="stat-legend" id="list-sertipikat"></ul>
+      </div>
+    </section>
+
+    <section class="grid-2" data-view="dashboard">
+      <div class="card">
+        <h2>Permohonan per Unit Pemilik Aset</h2>
+        <div class="h2sub">Jumlah titik lahan yang dimohon pada tiap unit</div>
+        <ul class="tk" id="list-unit"></ul>
+      </div>
+      <div class="card">
+        <h2>Sebaran per Kota/Kabupaten</h2>
+        <div class="h2sub">10 daerah dengan permohonan terbanyak</div>
+        <ul class="tk" id="list-kota"></ul>
+      </div>
+    </section>
+
+    <section class="grid-2" data-view="dashboard">
+      <div class="card">
+        <h2>Progres Kontrak</h2>
+        <div class="h2sub">Tindak lanjut kontraktual atas permohonan yang sudah disetujui</div>
+        <div id="progres-hero"></div>
+        <ul class="stat-legend" id="list-progres" style="margin-top:14px"></ul>
+        <div id="callout-progres"></div>
+      </div>
+      <div class="card">
+        <h2>Unit Belum Mengisi Progres Kontrak</h2>
+        <div class="h2sub">Permohonan disetujui yang kolom progres kontraknya masih kosong</div>
+        <ul class="tk" id="list-belum-progres"></ul>
+      </div>
+    </section>
+
+    <section class="grid-2" data-view="dashboard">
+      <div class="card">
+        <h2>Luas Lahan Diminta per Unit</h2>
+        <div class="h2sub">Total m² yang dimohon — hanya baris dengan luas terisi</div>
+        <div id="chart-luas"></div>
+      </div>
+      <div class="card">
+        <h2>Status Komunikasi dengan Pemohon</h2>
+        <div class="h2sub">Tindak lanjut komunikasi di lapangan</div>
+        <ul class="stat-legend" id="list-komunikasi"></ul>
+      </div>
+    </section>
+
+    <!-- ═══ VIEW: DATA ═══ -->
+    <section class="grid-1" data-view="data">
+      <div class="card">
+        <h2>Daftar Lengkap Permohonan</h2>
+        <div class="h2sub">Klik baris mana pun untuk melihat seluruh kolom dari sheet</div>
+        <div class="tbar">
+          <button class="btn2" id="btn-export" type="button">⭳ Unduh CSV (sesuai filter)</button>
+          <span class="tcount" id="tcount">—</span>
+        </div>
+        <div class="twrap">
+          <table id="tbl">
+            <thead><tr>
+              <th data-sort="no">No <span class="ar">↕</span></th>
+              <th data-sort="pemohon">Pihak Pemohon <span class="ar">↕</span></th>
+              <th data-sort="lokasi">Lokasi Aset <span class="ar">↕</span></th>
+              <th data-sort="kota">Kota/Kab <span class="ar">↕</span></th>
+              <th data-sort="unit">Unit Pemilik <span class="ar">↕</span></th>
+              <th data-sort="luasDiminta">Luas (m²) <span class="ar">↕</span></th>
+              <th data-sort="jenisSertipikat">Sertipikat <span class="ar">↕</span></th>
+              <th data-sort="statusAset">Status Aset <span class="ar">↕</span></th>
+              <th data-sort="persetujuan">Persetujuan <span class="ar">↕</span></th>
+              <th data-sort="progresKontrak">Progres Kontrak <span class="ar">↕</span></th>
+            </tr></thead>
+            <tbody id="tbody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ VIEW: ANALISIS ═══ -->
+    <section class="anal" data-view="analisis">
+      <div class="card">
+        <h2>Analisis Permohonan KDMP</h2>
+        <div id="anal-narasi"></div>
+        <p class="src">Narasi disusun otomatis dari data sheet sesuai filter yang aktif.</p>
+      </div>
+      <div>
+        <div class="card" style="margin-bottom:14px">
+          <h2>Metrik Kunci</h2>
+          <div class="metrik" id="anal-metrik"></div>
+        </div>
+        <div class="card ins">
+          <h2>Butir Perhatian</h2>
+          <ul id="anal-perhatian"></ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ VIEW: CETAK ═══ -->
+    <section class="grid-1" data-view="cetak">
+      <div class="card">
+        <h2>Cetak Laporan</h2>
+        <div class="h2sub">Seluruh bagian dashboard akan dicetak sesuai filter yang sedang aktif</div>
+        <p style="font-size:12.5px;line-height:1.65;color:#1E293B;max-width:640px">
+          Gunakan tombol di bawah untuk mencetak atau menyimpan sebagai PDF. Sidebar, baris filter,
+          dan tombol tidak ikut tercetak. Untuk hasil terbaik pilih orientasi <b>Landscape</b> dan
+          aktifkan <b>Background graphics</b> pada dialog cetak.
+        </p>
+        <button class="btn2" id="btn-print" type="button" style="margin-top:6px">🖨 Cetak / Simpan PDF</button>
+      </div>
+    </section>
+
+    <div class="foot">
+      <span>Data ditarik langsung dari Google Sheets setiap halaman dibuka.</span>
+      <span>Divisi Umum &amp; Aset Properti — PT PLN (Persero)</span>
+    </div>
+  </main>
+</div>
+
+<!-- Modal detail -->
+<div class="modal-overlay" id="modal" role="dialog" aria-modal="true" aria-labelledby="modal-title">
+  <div class="modal">
+    <div class="modal-head">
+      <div>
+        <h3 id="modal-title">Detail</h3>
+        <div class="msub" id="modal-sub"></div>
+      </div>
+      <button type="button" id="modal-close" aria-label="Tutup">×</button>
+    </div>
+    <div class="modal-body"><dl class="dl" id="modal-dl"></dl></div>
+  </div>
+</div>
+
+<script>
+/* ===== gviz-fetch.js ===== */
+/* =========================================================================
+ * gviz-fetch.js — pengambilan data langsung (live) dari Google Sheets
+ * Sumber : "Data Koperasi Merah Putih"
+ *          spreadsheet 1Fi9SP0DuOnHzRGg857MNgrV1iXXGmHrKfbCiOcsn9O8
+ *          tab gid 1494639969
+ *
+ * Memakai endpoint gviz/tq dengan JSONP (responseHandler) karena endpoint
+ * Google Visualization tidak mengirim header CORS untuk fetch() biasa.
+ * Catatan penting: pada tqx, pemisahnya TITIK DUA (responseHandler:namaFn),
+ * bukan tanda sama dengan.
+ * ========================================================================= */
+
+const KDMP_SHEET_ID = '1Fi9SP0DuOnHzRGg857MNgrV1iXXGmHrKfbCiOcsn9O8';
+const KDMP_GID = '1494639969';
+const KDMP_SHEET_URL =
+  `https://docs.google.com/spreadsheets/d/${KDMP_SHEET_ID}/edit?gid=${KDMP_GID}#gid=${KDMP_GID}`;
+
+/* Indeks kolom pada sheet (A = 0). Header sebenarnya ada di baris 4,
+   data mulai baris 5. Kita ambil headers=0 lalu deteksi sendiri baris
+   header agar tidak rusak bila ada baris disisipkan di atas. */
+const COL = {
+  no: 1,            // B
+  satuan: 2,        // C  (instansi/satuan pengusul)
+  pemohon: 3,       // D  PIHAK PEMOHON
+  lokasi: 4,        // E  LOKASI ASET
+  kota: 5,          // F  KOTA/KAB
+  unit: 6,          // G  UNIT PEMILIK ASET
+  desa: 7,          // H  DESA/KELURAHAN
+  maps: 8,          // I  LINK GOOGLE MAPS
+  koordinat: 9,     // J  Koordinat
+  luasSertifikat: 10, // K
+  luasDiminta: 11,  // L  LUAS LAHAN YANG DIMINTA (m2)
+  jenisSertipikat: 12, // M
+  nomorSertipikat: 13, // N
+  statusAset: 14,   // O
+  rencana: 15,      // P  RENCANA PENGEMBANGAN/PEMANFAATAN
+  suratPemda: 16,   // Q
+  statusKomunikasi: 17, // R
+  keterangan: 18,   // S
+  nilaiPerM2: 19,   // T
+  estimasiSewa: 20, // U
+  pic: 21,          // V  PIC BUMN di Daerah
+  persetujuan: 22,  // W  PERSETUJUAN TINDAK LANJUT (DIISI DIV GA)
+  progresKontrak: 23 // X
+};
+
+/* ---------- util pembacaan sel ---------- */
+function cellVal(row, idx) {
+  if (!row || !row.c || idx >= row.c.length) return null;
+  const c = row.c[idx];
+  if (!c) return null;
+  return c.v === undefined ? null : c.v;
+}
+function cellStr(row, idx) {
+  const v = cellVal(row, idx);
+  if (v === null || v === undefined) return '';
+  return String(v).trim();
+}
+function cellNum(row, idx) {
+  const v = cellVal(row, idx);
+  if (v === null || v === undefined || v === '') return null;
+  const n = typeof v === 'number' ? v : parseFloat(String(v).replace(/[^0-9.\-]/g, ''));
+  return Number.isFinite(n) ? n : null;
+}
+
+/* ---------- normalisasi ---------- */
+function normPersetujuan(raw) {
+  const s = (raw || '').toLowerCase().replace(/^[\s\-–—•.]+/, '');
+  if (!s) return 'Belum Ada Keputusan';
+  if (s.includes('tidak disetujui')) return 'Tidak Disetujui';
+  if (s.includes('menunggu')) return 'Menunggu Konfirmasi';
+  if (s.includes('disetujui')) return 'Disetujui';
+  return 'Lainnya';
+}
+
+function normStatusAset(raw) {
+  const s = (raw || '').toLowerCase();
+  if (!s) return 'Belum Diisi';
+  if (s.includes('idle')) {
+    return /digunakan|aktif|beroperasi|kantor jaga|gudang/.test(s)
+      ? 'IDLE (Sebagian Terpakai)'
+      : 'IDLE';
+  }
+  if (/digunakan|gudang|kantor|ecopark|udiklat|beroperasi|aktif/.test(s))
+    return 'Sedang Digunakan';
+  return 'Lainnya';
+}
+
+function normKelompok(unitRaw) {
+  const u = (unitRaw || '').toUpperCase();
+  if (!u) return 'Tidak Diketahui';
+  // "KANTOR PUSAT - PLN NP" = aset Kantor Pusat yang dikelola anak perusahaan
+  if (u.startsWith('KANTOR PUSAT')) return 'Kantor Pusat';
+  if (/PLN\s*IP|PLN\s*NP|INDONESIA POWER|NUSANTARA POWER/.test(u)) return 'Anak Perusahaan';
+  if (/UID|UIW/.test(u)) return 'Distribusi & Wilayah';
+  if (/UIP3B|UIP2B/.test(u)) return 'Penyaluran & Pengatur Beban';
+  if (/UIT\b/.test(u)) return 'Transmisi';
+  if (/UIP/.test(u)) return 'Pembangunan';
+  if (/UIK/.test(u)) return 'Pembangkitan';
+  return 'Lainnya';
+}
+
+function normJenisSertipikat(raw) {
+  const s = (raw || '').toUpperCase().trim();
+  if (!s || s === '-' || s === '–') return 'Belum Ada / Tidak Diketahui';
+  if (s.includes('HGB')) return 'HGB';
+  if (s.includes('HGU')) return 'HGU';
+  if (s.includes('HAK PAKAI') || /\bHP\b/.test(s)) return 'Hak Pakai';
+  if (s.includes('MILIK')) return 'Hak Milik';
+  if (s.includes('SK')) return 'SK / Dokumen Lain';
+  return raw.trim();
+}
+
+function normKomunikasi(raw) {
+  const s = (raw || '').toLowerCase();
+  if (!s) return 'Belum Ada Keterangan';
+  if (s.includes('sudah ada komunikasi')) return 'Sudah Ada Komunikasi';
+  if (s.includes('sudah dibalas')) return 'Surat Sudah Dibalas';
+  if (s.includes('belum dibalas')) return 'Surat Belum Dibalas';
+  return 'Keterangan Lain';
+}
+
+/* Tahapan progres kontrak. Kolom X di sheet masih kosong seluruhnya —
+   aturan di bawah sudah disiapkan agar panel langsung hidup begitu unit
+   mulai mengisi, tanpa perlu mengubah kode. */
+function normProgres(raw) {
+  const s = (raw || '').toLowerCase().trim();
+  if (!s || s === '-' || s === '–') return 'Belum Diisi';
+  if (/batal|tidak dilanjut|dibatalkan/.test(s)) return 'Tidak Dilanjutkan';
+  if (/selesai|terbit|efektif|berlaku/.test(s)) return 'Kontrak Terbit';
+  if (/ttd|tanda tangan|ditandatangani|penandatanganan/.test(s)) return 'Penandatanganan';
+  if (/draft|penyusunan|konsep|review|paraf|negosiasi|pembahasan/.test(s)) return 'Penyusunan Kontrak';
+  if (/appraisal|penilaian|kjpp|survey|survei|pengukuran/.test(s)) return 'Penilaian / Survei';
+  if (/permohonan|pengajuan|proses/.test(s)) return 'Proses Awal';
+  return raw.trim();
+}
+
+/* Seragamkan penulisan kota/kabupaten: "Kab", "Kab.", "KAB" -> "Kabupaten" */
+function normKota(raw) {
+  let s = (raw || '').trim().replace(/\s+/g, ' ');
+  if (!s) return '—';
+  let prefix = '';
+  if (/^kabupaten\b\.?\s*/i.test(s))      { prefix = 'Kabupaten'; s = s.replace(/^kabupaten\b\.?\s*/i, ''); }
+  else if (/^kab\b\.?\s*/i.test(s))       { prefix = 'Kabupaten'; s = s.replace(/^kab\b\.?\s*/i, ''); }
+  else if (/^kab\.\s*/i.test(s))          { prefix = 'Kabupaten'; s = s.replace(/^kab\.\s*/i, ''); }
+  else if (/^kab(?=[A-Z])/.test(s))       { prefix = 'Kabupaten'; s = s.replace(/^kab/, ''); }
+  else if (/^kota\b\.?\s*/i.test(s))      { prefix = 'Kota'; s = s.replace(/^kota\b\.?\s*/i, ''); }
+
+  const titel = s.trim().split(' ').filter(Boolean).map((w) =>
+    /^[A-Z0-9]{2,}$/.test(w) ? w : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+  ).join(' ');
+  return (prefix ? prefix + ' ' : '') + titel;
+}
+
+/* Rapikan nama unit agar varian penulisan tergabung */
+function normUnit(raw) {
+  let u = (raw || '').trim().replace(/\s+/g, ' ');
+  if (!u) return 'Tidak Diketahui';
+  u = u.replace(/^PLN\s*-\s*/i, 'PLN - ')
+       .replace(/^PLN\s+IP\s*-?\s*/i, 'PLN IP - ')
+       .replace(/^PLN\s+NP\s*-?\s*/i, 'PLN NP');
+  // Samakan kapitalisasi kata kunci umum
+  return u.replace(/\bUID\b/gi, 'UID')
+          .replace(/\bUIW\b/gi, 'UIW')
+          .replace(/\bUIP3B\b/gi, 'UIP3B')
+          .replace(/\bUBP\b/gi, 'UBP')
+          .replace(/\bKANTOR PUSAT\b/gi, 'Kantor Pusat');
+}
+
+/* ---------- parser tabel gviz ---------- */
+function parseKdmpTable(table) {
+  const rows = table.rows || [];
+  const out = [];
+  for (const row of rows) {
+    const no = cellNum(row, COL.no);
+    // baris data = punya nomor urut numerik dan ada pemohon/lokasi
+    if (no === null) continue;
+    const pemohon = cellStr(row, COL.pemohon);
+    const lokasi = cellStr(row, COL.lokasi);
+    if (!pemohon && !lokasi) continue;
+
+    const unitRaw = cellStr(row, COL.unit);
+    const persetujuanRaw = cellStr(row, COL.persetujuan);
+    const statusAsetRaw = cellStr(row, COL.statusAset);
+
+    out.push({
+      no,
+      satuan: cellStr(row, COL.satuan),
+      pemohon,
+      lokasi,
+      kota: normKota(cellStr(row, COL.kota)),
+      kotaRaw: cellStr(row, COL.kota),
+      unit: normUnit(unitRaw),
+      unitRaw,
+      kelompok: normKelompok(unitRaw),
+      desa: cellStr(row, COL.desa),
+      maps: cellStr(row, COL.maps),
+      koordinat: cellStr(row, COL.koordinat),
+      luasSertifikat: cellNum(row, COL.luasSertifikat),
+      luasDiminta: cellNum(row, COL.luasDiminta),
+      jenisSertipikat: cellStr(row, COL.jenisSertipikat),
+      jenisSertipikatNorm: normJenisSertipikat(cellStr(row, COL.jenisSertipikat)),
+      nomorSertipikat: cellStr(row, COL.nomorSertipikat),
+      statusAsetRaw,
+      statusAset: normStatusAset(statusAsetRaw),
+      rencana: cellStr(row, COL.rencana),
+      suratPemda: cellStr(row, COL.suratPemda),
+      statusKomunikasi: cellStr(row, COL.statusKomunikasi),
+      komunikasiNorm: normKomunikasi(cellStr(row, COL.statusKomunikasi)),
+      keterangan: cellStr(row, COL.keterangan),
+      nilaiPerM2: cellNum(row, COL.nilaiPerM2),
+      estimasiSewa: cellNum(row, COL.estimasiSewa),
+      pic: cellStr(row, COL.pic),
+      persetujuanRaw,
+      persetujuan: normPersetujuan(persetujuanRaw),
+      progresKontrak: cellStr(row, COL.progresKontrak),
+      progresNorm: normProgres(cellStr(row, COL.progresKontrak))
+    });
+  }
+  return out;
+}
+
+/* ---------- pemuat JSONP ---------- */
+let kdmpCallbackSeq = 0;
+
+function fetchKdmpData({ timeout = 20000 } = {}) {
+  return new Promise((resolve, reject) => {
+    const fnName = `kdmpHandler_${Date.now()}_${kdmpCallbackSeq++}`;
+    const script = document.createElement('script');
+    let done = false;
+
+    const cleanup = () => {
+      delete window[fnName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      clearTimeout(timer);
+    };
+
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      cleanup();
+      reject(new Error('Waktu tunggu habis saat mengambil data dari Google Sheets.'));
+    }, timeout);
+
+    window[fnName] = (resp) => {
+      if (done) return;
+      done = true;
+      cleanup();
+      try {
+        if (!resp || resp.status === 'error') {
+          const msg = resp && resp.errors && resp.errors[0]
+            ? (resp.errors[0].detailed_message || resp.errors[0].message)
+            : 'Respons Google Sheets tidak valid.';
+          reject(new Error(msg));
+          return;
+        }
+        resolve({ rows: parseKdmpTable(resp.table), fetchedAt: new Date() });
+      } catch (err) {
+        reject(err);
+      }
+    };
+
+    script.onerror = () => {
+      if (done) return;
+      done = true;
+      cleanup();
+      reject(new Error('Tidak dapat menghubungi Google Sheets.'));
+    };
+
+    const url =
+      `https://docs.google.com/spreadsheets/d/${KDMP_SHEET_ID}/gviz/tq` +
+      `?gid=${KDMP_GID}` +
+      `&headers=0` +
+      `&tqx=responseHandler:${fnName}` +
+      `&cachebust=${Date.now()}`;
+
+    script.src = url;
+    document.head.appendChild(script);
+  });
+}
+
+window.KDMP = { fetchKdmpData, KDMP_SHEET_URL, KDMP_SHEET_ID, KDMP_GID };
+
+</script>
+<script>
+/* ===== app.js ===== */
+/* =========================================================================
+ * app.js — Dashboard Monitoring KDMP
+ * Satu baris filter di atas mengendalikan seluruh KPI, chart, tabel, analisis.
+ * ========================================================================= */
+
+/* Setel true bila nomor HP PIC boleh tampil penuh di halaman publik. */
+const TAMPILKAN_NOMOR_PIC = false;
+
+const state = { all: [], view: [], fetchedAt: null, sort: { key: 'no', dir: 'asc' } };
+
+/* ---------------- format ---------------- */
+const fmt = (n) => (n === null || n === undefined || !Number.isFinite(n))
+  ? '—' : new Intl.NumberFormat('id-ID').format(Math.round(n));
+
+const fmtRp = (n) => {
+  if (!Number.isFinite(n) || !n) return '—';
+  if (n >= 1e9) return 'Rp ' + (n / 1e9).toFixed(2).replace('.', ',') + ' M';
+  if (n >= 1e6) return 'Rp ' + (n / 1e6).toFixed(1).replace('.', ',') + ' Jt';
+  return 'Rp ' + fmt(n);
+};
+const fmtRpFull = (n) => (!Number.isFinite(n) || !n) ? '—' : 'Rp ' + fmt(n);
+const esc = (s) => String(s == null ? '' : s)
+  .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const pctOf = (n, t) => t ? Math.round((n / t) * 100) : 0;
+
+function maskPic(pic) {
+  if (!pic) return '';
+  if (TAMPILKAN_NOMOR_PIC) return pic;
+  return pic.replace(/(\+?62|0)\s?8[\d\s\-.]{7,14}\d/g, '•••••••• (lihat sheet)');
+}
+
+/* ---------------- kamus status ---------------- */
+const PERSETUJUAN = {
+  'Disetujui':           { c: '#16A34A', sym: '✓', tag: 't-ok' },
+  'Menunggu Konfirmasi': { c: '#F59E0B', sym: '◷', tag: 't-wait' },
+  'Tidak Disetujui':     { c: '#DC2626', sym: '✕', tag: 't-no' },
+  'Belum Ada Keputusan': { c: '#94A3B8', sym: '–', tag: 't-none' },
+  'Lainnya':             { c: '#7C3AED', sym: '•', tag: 't-none' }
+};
+const URUT_PERSETUJUAN = ['Disetujui', 'Menunggu Konfirmasi', 'Tidak Disetujui', 'Belum Ada Keputusan', 'Lainnya'];
+
+const STATUS_ASET = {
+  'IDLE':                     { c: '#1B62D6', sym: '▢', tag: 't-idle' },
+  'IDLE (Sebagian Terpakai)': { c: '#F59E0B', sym: '◱', tag: 't-part' },
+  'Sedang Digunakan':         { c: '#7C3AED', sym: '▣', tag: 't-use' },
+  'Lainnya':                  { c: '#0EA5E9', sym: '◇', tag: 't-none' },
+  'Belum Diisi':              { c: '#94A3B8', sym: '–', tag: 't-none' }
+};
+const URUT_STATUS_ASET = ['IDLE', 'IDLE (Sebagian Terpakai)', 'Sedang Digunakan', 'Lainnya', 'Belum Diisi'];
+
+const PALET = ['#1B62D6', '#F59E0B', '#16A34A', '#7C3AED', '#0EA5E9', '#DC2626', '#64748B', '#94A3B8'];
+
+/* ---------------- filter ---------------- */
+function applyFilters() {
+  const g = (id) => document.getElementById(id).value;
+  const q = document.getElementById('f-search').value.trim().toLowerCase();
+  const kel = g('f-kelompok'), unit = g('f-unit'), per = g('f-persetujuan'), sta = g('f-status');
+
+  state.view = state.all.filter((r) => {
+    if (kel && r.kelompok !== kel) return false;
+    if (unit && r.unit !== unit) return false;
+    if (per && r.persetujuan !== per) return false;
+    if (sta && r.statusAset !== sta) return false;
+    if (q) {
+      const hay = [r.pemohon, r.satuan, r.lokasi, r.kota, r.desa, r.unit, r.rencana, r.keterangan, r.nomorSertipikat]
+        .join(' ').toLowerCase();
+      if (!hay.includes(q)) return false;
+    }
+    return true;
+  });
+  renderAll();
+}
+
+function fillSelect(id, values) {
+  const sel = document.getElementById(id);
+  const prev = sel.value;
+  const first = sel.querySelector('option').outerHTML;
+  sel.innerHTML = first + values.map((v) => `<option value="${esc(v)}">${esc(v)}</option>`).join('');
+  if (prev && values.includes(prev)) sel.value = prev;
+}
+
+function buildFilterOptions() {
+  const uniq = (key, order) => {
+    const set = [...new Set(state.all.map((r) => r[key]).filter(Boolean))];
+    return order
+      ? order.filter((o) => set.includes(o)).concat(set.filter((s) => !order.includes(s)))
+      : set.sort((a, b) => a.localeCompare(b, 'id'));
+  };
+  fillSelect('f-kelompok', uniq('kelompok'));
+  fillSelect('f-unit', uniq('unit'));
+  fillSelect('f-persetujuan', uniq('persetujuan', URUT_PERSETUJUAN));
+  fillSelect('f-status', uniq('statusAset', URUT_STATUS_ASET));
+}
+
+/* ---------------- agregasi ---------------- */
+function agg(rows, key, valueFn) {
+  const m = new Map();
+  rows.forEach((r) => {
+    const k = (r[key] || '—');
+    m.set(k, (m.get(k) || 0) + (valueFn ? (valueFn(r) || 0) : 1));
+  });
+  return [...m.entries()].filter(([, v]) => v > 0).sort((a, b) => b[1] - a[1]);
+}
+
+/* ---------------- KPI ---------------- */
+function ikon(path, bg, stroke) {
+  return `<div class="ic" style="background:${bg}">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="${stroke}" stroke-width="2.2"
+      stroke-linecap="round" stroke-linejoin="round">${path}</svg></div>`;
+}
+
+function renderKpis() {
+  const rows = state.view, total = rows.length;
+  const dis = rows.filter((r) => r.persetujuan === 'Disetujui').length;
+  const tol = rows.filter((r) => r.persetujuan === 'Tidak Disetujui').length;
+  const pro = rows.filter((r) => r.persetujuan === 'Menunggu Konfirmasi' || r.persetujuan === 'Belum Ada Keputusan').length;
+  const luas = rows.reduce((a, r) => a + (r.luasDiminta || 0), 0);
+  const nUnit = new Set(rows.map((r) => r.unit)).size;
+
+  const cards = [
+    {
+      ic: ikon('<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M8 2v4M16 2v4M3 10h18"/>', '#EFF5FF', '#1B62D6'),
+      lbl: 'Total Permohonan', big: fmt(total), bigColor: 'var(--navy)',
+      cap: `${fmt(nUnit)} unit pemilik aset · ${fmt(new Set(rows.map((r) => r.kota)).size)} kota/kabupaten`
+    },
+    {
+      ic: ikon('<path d="M20 6L9 17l-5-5"/>', '#ECFDF3', '#16A34A'),
+      lbl: 'Disetujui', big: fmt(dis), bigColor: 'var(--hijau)',
+      cap: `${pctOf(dis, total)}% dari permohonan pada filter ini`,
+      prog: pctOf(dis, total), progColor: '#16A34A'
+    },
+    {
+      ic: ikon('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>', '#FFF7E6', '#F59E0B'),
+      lbl: 'Dalam Proses', big: fmt(pro), bigColor: 'var(--oranye)',
+      cap: 'Menunggu konfirmasi lahan / belum diputus'
+    },
+    {
+      ic: ikon('<circle cx="12" cy="12" r="9"/><path d="M15 9l-6 6M9 9l6 6"/>', '#FEF2F2', '#DC2626'),
+      lbl: 'Tidak Disetujui', big: fmt(tol), bigColor: 'var(--merah)',
+      cap: `${pctOf(tol, total)}% dari permohonan · luas diminta total ${fmt(luas)} m²`
+    }
+  ];
+
+  document.getElementById('kpis').innerHTML = cards.map((c) => `
+    <div class="card kpi">
+      ${c.ic}
+      <div style="min-width:0;flex:1">
+        <p class="lbl">${esc(c.lbl)}</p>
+        <p class="big" style="color:${c.bigColor}">${c.big}</p>
+        <p class="cap">${c.cap}</p>
+        ${c.prog !== undefined ? `<div class="progress"><i style="width:${c.prog}%;background:${c.progColor}"></i></div>` : ''}
+      </div>
+    </div>`).join('');
+}
+
+/* ---------------- daftar status ---------------- */
+function renderStatList(elId, key, urutan, kamus, fallbackPalette, rowsOverride) {
+  const rows = rowsOverride || state.view, total = rows.length || 1;
+  const counts = {};
+  rows.forEach((r) => { const k = r[key] || 'Belum Diisi'; counts[k] = (counts[k] || 0) + 1; });
+  let keys = urutan ? urutan.filter((k) => counts[k]) : [];
+  keys = keys.concat(Object.keys(counts).filter((k) => !keys.includes(k)).sort((a, b) => counts[b] - counts[a]));
+  const max = Math.max(1, ...keys.map((k) => counts[k]));
+
+  const el = document.getElementById(elId);
+  if (!keys.length) { el.innerHTML = '<li style="color:var(--teks-2)">Tidak ada data pada filter ini.</li>'; return; }
+
+  el.innerHTML = keys.map((k, i) => {
+    const meta = (kamus && kamus[k]) || { c: (fallbackPalette || PALET)[i % 8], sym: '•' };
+    const n = counts[k];
+    return `<li title="${esc(k)}">
+      <span class="sym" style="color:${meta.c}">${meta.sym}</span>
+      <span class="nm">${esc(k)}</span>
+      <span class="br"><i style="width:${(n / max) * 100}%;background:${meta.c}"></i></span>
+      <b>${fmt(n)}</b><span class="pct">${pctOf(n, total)}%</span>
+    </li>`;
+  }).join('');
+}
+
+/* ---------------- daftar peringkat ---------------- */
+function renderRankList(elId, entries, opts = {}) {
+  const el = document.getElementById(elId);
+  const { limit = 12, color = 'var(--navy)', suffix = '', emptyText = 'Tidak ada data pada filter ini.' } = opts;
+  const data = entries.slice(0, limit);
+  if (!data.length) { el.innerHTML = `<li style="color:var(--teks-2)">${esc(emptyText)}</li>`; return; }
+  const max = Math.max(...data.map((e) => e[1]));
+  el.innerHTML = data.map((e, i) => `
+    <li title="${esc(e[0])}">
+      <span class="no">${i + 1}</span>
+      <span class="nm">${esc(e[0])}</span>
+      <span class="br"><i style="width:${(e[1] / max) * 100}%;background:${color}"></i></span>
+      <b>${fmt(e[1])}${suffix ? ` <small>${suffix}</small>` : ''}</b>
+    </li>`).join('');
+}
+
+/* ---------------- chart SVG batang horizontal ---------------- */
+function svgBar(elId, entries, { limit = 10, color = '#1B62D6', unit = '' } = {}) {
+  const el = document.getElementById(elId);
+  const data = entries.slice(0, limit);
+  if (!data.length) { el.innerHTML = '<p style="color:var(--teks-2);font-size:12px">Tidak ada data pada filter ini.</p>'; return; }
+
+  const rowH = 24, padT = 8, padB = 24, labelW = 168, plotW = 420;
+  const h = padT + data.length * rowH + padB;
+  const w = labelW + plotW + 58;
+  const max = Math.max(...data.map((e) => e[1]));
+  const ticks = 4;
+
+  let s = `<svg class="chart" viewBox="0 0 ${w} ${h}" role="img" aria-label="Grafik batang">`;
+  // gridline
+  for (let t = 0; t <= ticks; t++) {
+    const x = labelW + (plotW * t) / ticks;
+    s += `<line x1="${x}" y1="${padT}" x2="${x}" y2="${padT + data.length * rowH}" stroke="#E5EAF1" stroke-width="1"/>`;
+    s += `<text x="${x}" y="${h - 8}" font-size="9.5" fill="#94A3B8" text-anchor="middle">${fmt((max * t) / ticks)}</text>`;
+  }
+  data.forEach((e, i) => {
+    const y = padT + i * rowH;
+    const bw = Math.max(2, (e[1] / max) * plotW);
+    const nm = e[0].length > 26 ? e[0].slice(0, 25) + '…' : e[0];
+    s += `<text x="${labelW - 8}" y="${y + 15}" font-size="10.5" fill="#334155" text-anchor="end">${esc(nm)}</text>`;
+    s += `<rect x="${labelW}" y="${y + 5}" width="${bw}" height="12" rx="3" fill="${color}"><title>${esc(e[0])}: ${fmt(e[1])} ${unit}</title></rect>`;
+    s += `<text x="${labelW + bw + 6}" y="${y + 15}" font-size="10" font-weight="700" fill="#0F172A">${fmt(e[1])}</text>`;
+  });
+  s += `<line x1="${labelW}" y1="${padT}" x2="${labelW}" y2="${padT + data.length * rowH}" stroke="#CBD5E1" stroke-width="1"/>`;
+  s += `<text x="${labelW + plotW / 2}" y="${h - 8}" font-size="9.5" fill="#94A3B8" text-anchor="middle" opacity="0"></text>`;
+  s += '</svg>';
+  el.innerHTML = s;
+}
+
+/* ---------------- progres kontrak ---------------- */
+const PROGRES = {
+  'Belum Diisi':          { c: '#94A3B8', sym: '–' },
+  'Proses Awal':          { c: '#0EA5E9', sym: '◔' },
+  'Penilaian / Survei':   { c: '#1B62D6', sym: '◑' },
+  'Penyusunan Kontrak':   { c: '#F59E0B', sym: '◕' },
+  'Penandatanganan':      { c: '#7C3AED', sym: '✎' },
+  'Kontrak Terbit':       { c: '#16A34A', sym: '✓' },
+  'Tidak Dilanjutkan':    { c: '#DC2626', sym: '✕' }
+};
+const URUT_PROGRES = ['Kontrak Terbit', 'Penandatanganan', 'Penyusunan Kontrak',
+  'Penilaian / Survei', 'Proses Awal', 'Tidak Dilanjutkan', 'Belum Diisi'];
+
+function renderProgres() {
+  const rows = state.view;
+  const disetujui = rows.filter((r) => r.persetujuan === 'Disetujui');
+  const terisi = disetujui.filter((r) => r.progresNorm !== 'Belum Diisi');
+  const kosong = disetujui.length - terisi.length;
+  const persen = pctOf(terisi.length, disetujui.length);
+  const tuntas = disetujui.filter((r) => r.progresNorm === 'Kontrak Terbit').length;
+
+  document.getElementById('progres-hero').innerHTML = `
+    <div class="phero">
+      <span class="pv" style="color:${terisi.length ? 'var(--navy)' : 'var(--teks-3)'}">${fmt(terisi.length)} / ${fmt(disetujui.length)}</span>
+      <span class="pd">permohonan disetujui sudah punya progres kontrak</span>
+    </div>
+    <div class="pbar${terisi.length ? '' : ' kosong'}">
+      <i style="width:${persen}%;background:${tuntas ? '#16A34A' : '#1B62D6'}"></i>
+    </div>
+    <p class="pnote">${
+      terisi.length
+        ? `${persen}% terisi · ${fmt(tuntas)} kontrak sudah terbit · ${fmt(kosong)} permohonan belum ada kabar dari unit.`
+        : `Belum ada unit yang mengisi kolom progres kontrak di sheet. Panel ini terisi otomatis begitu unit mulai memperbarui kolom <b>PROGRES KONTRAK</b>.`
+    }</p>`;
+
+  renderStatList('list-progres', 'progresNorm', URUT_PROGRES, PROGRES, null, disetujui);
+
+  document.getElementById('callout-progres').innerHTML = disetujui.length
+    ? `<div class="callout${terisi.length ? '' : ' warn'}">${
+        terisi.length
+          ? `${fmt(terisi.length)} dari ${fmt(disetujui.length)} permohonan disetujui sudah ditindaklanjuti secara kontraktual.`
+          : `Menunggu pengisian: ${fmt(disetujui.length)} permohonan sudah disetujui namun belum ada satu pun laporan progres kontrak dari unit.`
+      }</div>`
+    : '';
+
+  const belum = agg(disetujui.filter((r) => r.progresNorm === 'Belum Diisi'), 'unit');
+  renderRankList('list-belum-progres', belum, {
+    limit: 12, color: '#F59E0B',
+    emptyText: disetujui.length
+      ? 'Seluruh permohonan yang disetujui sudah punya progres kontrak.'
+      : 'Belum ada permohonan yang disetujui pada filter ini.'
+  });
+}
+
+/* ---------------- tabel ---------------- */
+function sortRows(rows) {
+  const { key, dir } = state.sort, mul = dir === 'asc' ? 1 : -1;
+  return [...rows].sort((a, b) => {
+    const av = a[key], bv = b[key];
+    const an = av === null || av === undefined || av === '';
+    const bn = bv === null || bv === undefined || bv === '';
+    if (an && bn) return 0;
+    if (an) return 1;
+    if (bn) return -1;
+    if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * mul;
+    return String(av).localeCompare(String(bv), 'id') * mul;
+  });
+}
+
+const tag = (text, meta) => `<span class="tag ${meta ? meta.tag : 't-none'}">${esc(text)}</span>`;
+
+function renderTable() {
+  const rows = sortRows(state.view);
+  document.getElementById('tcount').textContent =
+    `${fmt(rows.length)} dari ${fmt(state.all.length)} permohonan`;
+  const tb = document.getElementById('tbody');
+
+  if (!rows.length) {
+    tb.innerHTML = `<tr><td colspan="10"><div class="empty">Tidak ada permohonan yang cocok dengan filter.</div></td></tr>`;
+    return;
+  }
+
+  tb.innerHTML = rows.map((r) => `
+    <tr data-no="${r.no}">
+      <td class="num">${r.no}</td>
+      <td class="unm"><div class="wrap2">${esc(r.pemohon || '—')}</div></td>
+      <td><div class="wrap2">${esc(r.lokasi || '—')}</div></td>
+      <td>${esc(r.kota)}</td>
+      <td><span class="gpill">${esc(r.unit)}</span></td>
+      <td class="num">${r.luasDiminta ? fmt(r.luasDiminta) : '—'}</td>
+      <td>${esc(r.jenisSertipikat || '—')}</td>
+      <td>${tag(r.statusAset, STATUS_ASET[r.statusAset])}</td>
+      <td>${tag(r.persetujuan, PERSETUJUAN[r.persetujuan])}</td>
+      <td>${r.progresKontrak ? esc(r.progresKontrak) : '<span style="color:var(--teks-3)">belum diisi</span>'}</td>
+    </tr>`).join('');
+
+  tb.querySelectorAll('tr').forEach((tr) =>
+    tr.addEventListener('click', () => openModal(Number(tr.dataset.no))));
+}
+
+function bindSorting() {
+  document.querySelectorAll('#tbl thead th').forEach((th) => {
+    th.addEventListener('click', () => {
+      const key = th.dataset.sort;
+      if (!key) return;
+      state.sort.dir = (state.sort.key === key && state.sort.dir === 'asc') ? 'desc' : 'asc';
+      state.sort.key = key;
+      document.querySelectorAll('#tbl thead th').forEach((o) => {
+        o.classList.remove('sorted');
+        const a = o.querySelector('.ar'); if (a) a.textContent = '↕';
+      });
+      th.classList.add('sorted');
+      th.querySelector('.ar').textContent = state.sort.dir === 'asc' ? '↑' : '↓';
+      renderTable();
+    });
+  });
+}
+
+/* ---------------- modal ---------------- */
+const linkOrText = (v) => !v ? '—'
+  : (/^https?:\/\//i.test(v) ? `<a href="${esc(v)}" target="_blank" rel="noopener">Buka tautan ↗</a>` : esc(v));
+
+function openModal(no) {
+  const r = state.all.find((x) => x.no === no);
+  if (!r) return;
+  document.getElementById('modal-title').textContent = r.pemohon || `Permohonan No. ${r.no}`;
+  document.getElementById('modal-sub').textContent = `No. ${r.no} · ${r.unitRaw || r.unit} · ${r.kota}`;
+
+  const f = [
+    ['Satuan / Instansi Pengusul', esc(r.satuan || '—')],
+    ['Lokasi Aset', esc(r.lokasi || '—')],
+    ['Desa / Kelurahan', esc(r.desa || '—')],
+    ['Kota / Kabupaten', esc(r.kota || '—')],
+    ['Unit Pemilik Aset', esc(r.unitRaw || r.unit)],
+    ['Kelompok Unit', esc(r.kelompok)],
+    ['Link Google Maps', linkOrText(r.maps)],
+    ['Koordinat', esc(r.koordinat || '—')],
+    ['Luas Sesuai Sertipikat', r.luasSertifikat ? fmt(r.luasSertifikat) + ' m²' : '—'],
+    ['Luas Lahan Diminta', r.luasDiminta ? fmt(r.luasDiminta) + ' m²' : '—'],
+    ['Jenis Sertipikat', esc(r.jenisSertipikat || '—')],
+    ['Nomor Sertipikat', esc(r.nomorSertipikat || '—')],
+    ['Status Aset', esc(r.statusAsetRaw || r.statusAset)],
+    ['Rencana Pemanfaatan', esc(r.rencana || '—')],
+    ['Surat Permohonan Pemda', linkOrText(r.suratPemda)],
+    ['Status Komunikasi', esc(r.statusKomunikasi || '—')],
+    ['Keterangan', esc(r.keterangan || '—')],
+    ['Nilai Aset per m²', fmtRpFull(r.nilaiPerM2)],
+    ['Estimasi Nilai Sewa', fmtRpFull(r.estimasiSewa)],
+    ['PIC BUMN di Daerah', esc(maskPic(r.pic) || '—')],
+    ['Persetujuan Tindak Lanjut', esc(r.persetujuanRaw || r.persetujuan)],
+    ['Progres Kontrak', esc(r.progresKontrak || 'belum diisi')]
+  ];
+  document.getElementById('modal-dl').innerHTML = f.map(([k, v]) => `<dt>${esc(k)}</dt><dd>${v}</dd>`).join('');
+  document.getElementById('modal').classList.add('on');
+  document.body.style.overflow = 'hidden';
+}
+function closeModal() {
+  document.getElementById('modal').classList.remove('on');
+  document.body.style.overflow = '';
+}
+
+/* ---------------- analisis otomatis ---------------- */
+function renderAnalisis() {
+  const rows = state.view, total = rows.length;
+  const el = document.getElementById('anal-narasi');
+  if (!total) {
+    el.innerHTML = '<p>Tidak ada permohonan pada filter yang aktif.</p>';
+    document.getElementById('anal-metrik').innerHTML = '';
+    document.getElementById('anal-perhatian').innerHTML = '';
+    return;
+  }
+
+  const dis = rows.filter((r) => r.persetujuan === 'Disetujui');
+  const tol = rows.filter((r) => r.persetujuan === 'Tidak Disetujui');
+  const pro = rows.filter((r) => r.persetujuan === 'Menunggu Konfirmasi' || r.persetujuan === 'Belum Ada Keputusan');
+  const idle = rows.filter((r) => r.statusAset.startsWith('IDLE'));
+  const luas = rows.reduce((a, r) => a + (r.luasDiminta || 0), 0);
+  const sewa = rows.reduce((a, r) => a + (r.estimasiSewa || 0), 0);
+  const luasIsi = rows.filter((r) => r.luasDiminta).length;
+  const perUnit = agg(rows, 'unit');
+  const perKota = agg(rows, 'kota');
+  const tanpaSertipikat = rows.filter((r) => !r.nomorSertipikat || r.nomorSertipikat === '-').length;
+  const tanpaLuas = total - luasIsi;
+  const tanpaSewa = rows.filter((r) => !r.estimasiSewa).length;
+  const belumKontrak = rows.filter((r) => !r.progresKontrak).length;
+  const rerataLuas = luasIsi ? luas / luasIsi : 0;
+
+  el.innerHTML = `
+    <h3>Gambaran Umum</h3>
+    <p>Terdapat <b>${fmt(total)} permohonan</b> pemanfaatan lahan PLN oleh Koperasi Desa/Kelurahan Merah Putih
+       yang tersebar di <b>${fmt(perKota.length)} kota/kabupaten</b> dan melibatkan
+       <b>${fmt(perUnit.length)} unit pemilik aset</b>. Total luas lahan yang dimohon mencapai
+       <b>${fmt(luas)} m²</b> dari ${fmt(luasIsi)} permohonan yang sudah mencantumkan luas
+       (rata-rata ${fmt(rerataLuas)} m² per permohonan).</p>
+
+    <h3>Posisi Keputusan</h3>
+    <p>Sebanyak <b>${fmt(dis.length)} permohonan (${pctOf(dis.length, total)}%)</b> telah disetujui untuk
+       ditindaklanjuti, <b>${fmt(pro.length)} permohonan (${pctOf(pro.length, total)}%)</b> masih dalam proses
+       menunggu konfirmasi lahan atau belum diputus, dan <b>${fmt(tol.length)} permohonan
+       (${pctOf(tol.length, total)}%)</b> tidak disetujui. ${
+      tol.length
+        ? `Penolakan umumnya terkait lahan yang masih produktif atau mengganggu kegiatan operasional PLN.`
+        : `Belum ada permohonan yang ditolak pada cakupan filter ini.`}</p>
+
+    <h3>Kondisi Aset</h3>
+    <p><b>${fmt(idle.length)} dari ${fmt(total)} permohonan (${pctOf(idle.length, total)}%)</b> mengarah pada
+       lahan berstatus IDLE, sehingga pemanfaatan oleh koperasi berpotensi mengoptimalkan aset yang belum
+       produktif. Estimasi nilai sewa yang sudah terhitung mencapai <b>${fmtRp(sewa)}</b>
+       dari ${fmt(total - tanpaSewa)} permohonan; sisanya belum dinilai.</p>
+
+    <h3>Konsentrasi Permohonan</h3>
+    <p>Unit dengan permohonan terbanyak adalah <b>${esc(perUnit[0][0])}</b> (${fmt(perUnit[0][1])} permohonan)${
+      perUnit[1] ? `, diikuti <b>${esc(perUnit[1][0])}</b> (${fmt(perUnit[1][1])})` : ''}${
+      perUnit[2] ? ` dan <b>${esc(perUnit[2][0])}</b> (${fmt(perUnit[2][1])})` : ''}.
+       Secara wilayah, <b>${esc(perKota[0][0])}</b> menjadi daerah dengan permohonan terbanyak
+       (${fmt(perKota[0][1])} titik lahan).</p>
+
+    <h3>Kelengkapan Data</h3>
+    <p>Kolom progres kontrak masih kosong pada <b>${fmt(belumKontrak)} dari ${fmt(total)} baris</b>,
+       luas lahan belum terisi pada <b>${fmt(tanpaLuas)} baris</b>, dan nomor sertipikat belum tersedia
+       pada <b>${fmt(tanpaSertipikat)} baris</b>. Kelengkapan ini perlu dilengkapi agar monitoring
+       tindak lanjut kontraktual dapat berjalan.</p>`;
+
+  document.getElementById('anal-metrik').innerHTML = [
+    { k: 'Tingkat Persetujuan', v: pctOf(dis.length, total) + '%', s: `${fmt(dis.length)} dari ${fmt(total)} permohonan` },
+    { k: 'Lahan IDLE', v: pctOf(idle.length, total) + '%', s: `${fmt(idle.length)} permohonan atas lahan idle` },
+    { k: 'Rata-rata Luas Diminta', v: fmt(rerataLuas) + ' m²', s: `dari ${fmt(luasIsi)} baris terisi` },
+    { k: 'Estimasi Nilai Sewa', v: fmtRp(sewa), s: `${fmt(total - tanpaSewa)} baris sudah dinilai` }
+  ].map((m) => `<div><p class="k">${esc(m.k)}</p><p class="v">${m.v}</p><p class="s">${esc(m.s)}</p></div>`).join('');
+
+  const perhatian = [];
+  if (belumKontrak) perhatian.push(`Progres kontrak belum terisi pada <b>${fmt(belumKontrak)} permohonan</b> — termasuk ${fmt(dis.length)} yang sudah disetujui.`);
+  if (tanpaLuas) perhatian.push(`<b>${fmt(tanpaLuas)} permohonan</b> belum mencantumkan luas lahan yang diminta.`);
+  if (tanpaSertipikat) perhatian.push(`<b>${fmt(tanpaSertipikat)} permohonan</b> belum memiliki nomor sertipikat/alas hak yang jelas.`);
+  if (pro.length) perhatian.push(`<b>${fmt(pro.length)} permohonan</b> masih menunggu konfirmasi kepemilikan lahan dan perlu percepatan.`);
+  const nonPln = rows.filter((r) => /bukan m?ilik pln|tidak memiliki alas hak/i.test(r.keterangan || '')).length;
+  if (nonPln) perhatian.push(`<b>${fmt(nonPln)} permohonan</b> menyangkut lahan yang diindikasikan bukan milik PLN atau tanpa alas hak.`);
+  if (!perhatian.length) perhatian.push('Tidak ada butir perhatian pada cakupan filter ini.');
+
+  document.getElementById('anal-perhatian').innerHTML =
+    perhatian.map((p) => `<li><span class="bul">›</span><span>${p}</span></li>`).join('');
+}
+
+/* ---------------- ekspor CSV ---------------- */
+function exportCsv() {
+  const head = ['No', 'Satuan/Instansi', 'Pihak Pemohon', 'Lokasi Aset', 'Desa/Kelurahan', 'Kota/Kab',
+    'Unit Pemilik Aset', 'Kelompok', 'Luas Sertipikat (m2)', 'Luas Diminta (m2)', 'Jenis Sertipikat',
+    'Nomor Sertipikat', 'Status Aset', 'Rencana Pemanfaatan', 'Status Komunikasi', 'Keterangan',
+    'Nilai per m2', 'Estimasi Sewa', 'Persetujuan', 'Progres Kontrak'];
+  const q = (v) => '"' + String(v == null ? '' : v).replace(/"/g, '""') + '"';
+  const lines = [head.map(q).join(';')];
+  sortRows(state.view).forEach((r) => lines.push([r.no, r.satuan, r.pemohon, r.lokasi, r.desa, r.kota,
+    r.unitRaw, r.kelompok, r.luasSertifikat ?? '', r.luasDiminta ?? '', r.jenisSertipikat, r.nomorSertipikat,
+    r.statusAsetRaw, r.rencana, r.statusKomunikasi, r.keterangan, r.nilaiPerM2 ?? '', r.estimasiSewa ?? '',
+    r.persetujuanRaw, r.progresKontrak].map(q).join(';')));
+  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8;' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `kdmp-permohonan-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  setTimeout(() => URL.revokeObjectURL(a.href), 1000);
+}
+
+/* ---------------- render menyeluruh ---------------- */
+function renderAll() {
+  const rows = state.view;
+  renderKpis();
+  renderStatList('list-persetujuan', 'persetujuan', URUT_PERSETUJUAN, PERSETUJUAN);
+  renderStatList('list-status', 'statusAset', URUT_STATUS_ASET, STATUS_ASET);
+  renderStatList('list-sertipikat', 'jenisSertipikatNorm', null, null);
+  renderStatList('list-komunikasi', 'komunikasiNorm', null, null);
+
+  const dis = rows.filter((r) => r.persetujuan === 'Disetujui').length;
+  document.getElementById('callout-persetujuan').innerHTML = rows.length
+    ? `<div class="callout${dis / rows.length < 0.5 ? ' warn' : ''}">${fmt(dis)} dari ${fmt(rows.length)} permohonan (${pctOf(dis, rows.length)}%) sudah mendapat persetujuan tindak lanjut.</div>`
+    : '';
+
+  renderProgres();
+  renderRankList('list-unit', agg(rows, 'unit'), { limit: 12, color: 'var(--navy)' });
+  renderRankList('list-kota', agg(rows, 'kota'), { limit: 10, color: '#1B62D6' });
+  svgBar('chart-luas', agg(rows, 'unit', (r) => r.luasDiminta), { limit: 12, color: '#F59E0B', unit: 'm²' });
+
+  renderTable();
+  renderAnalisis();
+}
+
+/* ---------------- routing ---------------- */
+function route() {
+  const hash = (location.hash || '#dashboard').slice(1);
+  const valid = ['dashboard', 'data', 'analisis', 'cetak'];
+  const r = valid.includes(hash) ? hash : 'dashboard';
+  document.querySelectorAll('[data-view]').forEach((el) => el.classList.toggle('on', el.dataset.view === r));
+  document.querySelectorAll('#nav a').forEach((a) => a.classList.toggle('on', a.dataset.route === r));
+  document.getElementById('filters').hidden = (r === 'cetak');
+  window.scrollTo({ top: 0, behavior: 'instant' in window ? 'instant' : 'auto' });
+}
+
+/* ---------------- muat data ---------------- */
+async function load() {
+  const bar = document.getElementById('livebar');
+  const txt = document.getElementById('live-text');
+  bar.className = 'livebar loading';
+  bar.querySelector('.dot').className = 'dot loading';
+  txt.textContent = 'Menarik data langsung dari Google Sheets…';
+
+  try {
+    const { rows, fetchedAt } = await window.KDMP.fetchKdmpData();
+    state.all = rows;
+    state.fetchedAt = fetchedAt;
+    buildFilterOptions();
+    applyFilters();
+    bar.className = 'livebar ok';
+    bar.querySelector('.dot').className = 'dot ok';
+    txt.textContent = `Data berhasil dimuat langsung dari Google Sheets — ${fmt(rows.length)} permohonan.`;
+    document.getElementById('upd-time').innerHTML =
+      'Diperbarui: <b>' + fetchedAt.toLocaleString('id-ID', { dateStyle: 'long', timeStyle: 'short' }) + '</b>';
+  } catch (err) {
+    bar.className = 'livebar bad';
+    bar.querySelector('.dot').className = 'dot bad';
+    txt.textContent = err.message +
+      ' Pastikan halaman ini dibuka lewat alamat http/https (mis. GitHub Pages) dan sheet sumber dibagikan "Anyone with the link — Viewer".';
+    document.getElementById('upd-time').textContent = 'Data gagal dimuat';
+  }
+}
+
+/* ---------------- init ---------------- */
+document.addEventListener('DOMContentLoaded', () => {
+  document.getElementById('link-sheet').href = window.KDMP.KDMP_SHEET_URL;
+  ['f-kelompok', 'f-unit', 'f-persetujuan', 'f-status'].forEach((id) =>
+    document.getElementById(id).addEventListener('change', applyFilters));
+  let t;
+  document.getElementById('f-search').addEventListener('input', () => {
+    clearTimeout(t); t = setTimeout(applyFilters, 180);
+  });
+  document.getElementById('reset').addEventListener('click', () => {
+    ['f-kelompok', 'f-unit', 'f-persetujuan', 'f-status'].forEach((id) => (document.getElementById(id).value = ''));
+    document.getElementById('f-search').value = '';
+    applyFilters();
+  });
+  document.getElementById('btn-refresh').addEventListener('click', load);
+  document.getElementById('btn-export').addEventListener('click', exportCsv);
+  document.getElementById('btn-print').addEventListener('click', () => window.print());
+  document.getElementById('modal-close').addEventListener('click', closeModal);
+  document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape') closeModal(); });
+  window.addEventListener('hashchange', route);
+  bindSorting();
+  route();
+  load();
+});
+
+</script>
+</body>
+</html>
