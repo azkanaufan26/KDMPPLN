@@ -1,0 +1,282 @@
+/* =========================================================================
+ * gviz-fetch.js — pengambilan data langsung (live) dari Google Sheets
+ * Sumber : "Data Koperasi Merah Putih"
+ *          spreadsheet 1Fi9SP0DuOnHzRGg857MNgrV1iXXGmHrKfbCiOcsn9O8
+ *          tab gid 1494639969
+ *
+ * Memakai endpoint gviz/tq dengan JSONP (responseHandler) karena endpoint
+ * Google Visualization tidak mengirim header CORS untuk fetch() biasa.
+ * Catatan penting: pada tqx, pemisahnya TITIK DUA (responseHandler:namaFn),
+ * bukan tanda sama dengan.
+ * ========================================================================= */
+
+const KDMP_SHEET_ID = '1Fi9SP0DuOnHzRGg857MNgrV1iXXGmHrKfbCiOcsn9O8';
+const KDMP_GID = '1494639969';
+const KDMP_SHEET_URL =
+  `https://docs.google.com/spreadsheets/d/${KDMP_SHEET_ID}/edit?gid=${KDMP_GID}#gid=${KDMP_GID}`;
+
+/* Indeks kolom pada sheet (A = 0). Header sebenarnya ada di baris 4,
+   data mulai baris 5. Kita ambil headers=0 lalu deteksi sendiri baris
+   header agar tidak rusak bila ada baris disisipkan di atas. */
+const COL = {
+  no: 1,            // B
+  satuan: 2,        // C  (instansi/satuan pengusul)
+  pemohon: 3,       // D  PIHAK PEMOHON
+  lokasi: 4,        // E  LOKASI ASET
+  kota: 5,          // F  KOTA/KAB
+  unit: 6,          // G  UNIT PEMILIK ASET
+  desa: 7,          // H  DESA/KELURAHAN
+  maps: 8,          // I  LINK GOOGLE MAPS
+  koordinat: 9,     // J  Koordinat
+  luasSertifikat: 10, // K
+  luasDiminta: 11,  // L  LUAS LAHAN YANG DIMINTA (m2)
+  jenisSertipikat: 12, // M
+  nomorSertipikat: 13, // N
+  statusAset: 14,   // O
+  rencana: 15,      // P  RENCANA PENGEMBANGAN/PEMANFAATAN
+  suratPemda: 16,   // Q
+  statusKomunikasi: 17, // R
+  keterangan: 18,   // S
+  nilaiPerM2: 19,   // T
+  estimasiSewa: 20, // U
+  pic: 21,          // V  PIC BUMN di Daerah
+  persetujuan: 22,  // W  PERSETUJUAN TINDAK LANJUT (DIISI DIV GA)
+  progresKontrak: 23 // X
+};
+
+/* ---------- util pembacaan sel ---------- */
+function cellVal(row, idx) {
+  if (!row || !row.c || idx >= row.c.length) return null;
+  const c = row.c[idx];
+  if (!c) return null;
+  return c.v === undefined ? null : c.v;
+}
+function cellStr(row, idx) {
+  const v = cellVal(row, idx);
+  if (v === null || v === undefined) return '';
+  return String(v).trim();
+}
+function cellNum(row, idx) {
+  const v = cellVal(row, idx);
+  if (v === null || v === undefined || v === '') return null;
+  const n = typeof v === 'number' ? v : parseFloat(String(v).replace(/[^0-9.\-]/g, ''));
+  return Number.isFinite(n) ? n : null;
+}
+
+/* ---------- normalisasi ---------- */
+function normPersetujuan(raw) {
+  const s = (raw || '').toLowerCase().replace(/^[\s\-–—•.]+/, '');
+  if (!s) return 'Belum Ada Keputusan';
+  if (s.includes('tidak disetujui')) return 'Tidak Disetujui';
+  if (s.includes('menunggu')) return 'Menunggu Konfirmasi';
+  if (s.includes('disetujui')) return 'Disetujui';
+  return 'Lainnya';
+}
+
+function normStatusAset(raw) {
+  const s = (raw || '').toLowerCase();
+  if (!s) return 'Belum Diisi';
+  if (s.includes('idle')) {
+    return /digunakan|aktif|beroperasi|kantor jaga|gudang/.test(s)
+      ? 'IDLE (Sebagian Terpakai)'
+      : 'IDLE';
+  }
+  if (/digunakan|gudang|kantor|ecopark|udiklat|beroperasi|aktif/.test(s))
+    return 'Sedang Digunakan';
+  return 'Lainnya';
+}
+
+function normKelompok(unitRaw) {
+  const u = (unitRaw || '').toUpperCase();
+  if (!u) return 'Tidak Diketahui';
+  // "KANTOR PUSAT - PLN NP" = aset Kantor Pusat yang dikelola anak perusahaan
+  if (u.startsWith('KANTOR PUSAT')) return 'Kantor Pusat';
+  if (/PLN\s*IP|PLN\s*NP|INDONESIA POWER|NUSANTARA POWER/.test(u)) return 'Anak Perusahaan';
+  if (/UID|UIW/.test(u)) return 'Distribusi & Wilayah';
+  if (/UIP3B|UIP2B/.test(u)) return 'Penyaluran & Pengatur Beban';
+  if (/UIT\b/.test(u)) return 'Transmisi';
+  if (/UIP/.test(u)) return 'Pembangunan';
+  if (/UIK/.test(u)) return 'Pembangkitan';
+  return 'Lainnya';
+}
+
+function normJenisSertipikat(raw) {
+  const s = (raw || '').toUpperCase().trim();
+  if (!s || s === '-' || s === '–') return 'Belum Ada / Tidak Diketahui';
+  if (s.includes('HGB')) return 'HGB';
+  if (s.includes('HGU')) return 'HGU';
+  if (s.includes('HAK PAKAI') || /\bHP\b/.test(s)) return 'Hak Pakai';
+  if (s.includes('MILIK')) return 'Hak Milik';
+  if (s.includes('SK')) return 'SK / Dokumen Lain';
+  return raw.trim();
+}
+
+function normKomunikasi(raw) {
+  const s = (raw || '').toLowerCase();
+  if (!s) return 'Belum Ada Keterangan';
+  if (s.includes('sudah ada komunikasi')) return 'Sudah Ada Komunikasi';
+  if (s.includes('sudah dibalas')) return 'Surat Sudah Dibalas';
+  if (s.includes('belum dibalas')) return 'Surat Belum Dibalas';
+  return 'Keterangan Lain';
+}
+
+/* Tahapan progres kontrak. Kolom X di sheet masih kosong seluruhnya —
+   aturan di bawah sudah disiapkan agar panel langsung hidup begitu unit
+   mulai mengisi, tanpa perlu mengubah kode. */
+function normProgres(raw) {
+  const s = (raw || '').toLowerCase().trim();
+  if (!s || s === '-' || s === '–') return 'Belum Diisi';
+  if (/batal|tidak dilanjut|dibatalkan/.test(s)) return 'Tidak Dilanjutkan';
+  if (/selesai|terbit|efektif|berlaku/.test(s)) return 'Kontrak Terbit';
+  if (/ttd|tanda tangan|ditandatangani|penandatanganan/.test(s)) return 'Penandatanganan';
+  if (/draft|penyusunan|konsep|review|paraf|negosiasi|pembahasan/.test(s)) return 'Penyusunan Kontrak';
+  if (/appraisal|penilaian|kjpp|survey|survei|pengukuran/.test(s)) return 'Penilaian / Survei';
+  if (/permohonan|pengajuan|proses/.test(s)) return 'Proses Awal';
+  return raw.trim();
+}
+
+/* Seragamkan penulisan kota/kabupaten: "Kab", "Kab.", "KAB" -> "Kabupaten" */
+function normKota(raw) {
+  let s = (raw || '').trim().replace(/\s+/g, ' ');
+  if (!s) return '—';
+  let prefix = '';
+  if (/^kabupaten\b\.?\s*/i.test(s))      { prefix = 'Kabupaten'; s = s.replace(/^kabupaten\b\.?\s*/i, ''); }
+  else if (/^kab\b\.?\s*/i.test(s))       { prefix = 'Kabupaten'; s = s.replace(/^kab\b\.?\s*/i, ''); }
+  else if (/^kab\.\s*/i.test(s))          { prefix = 'Kabupaten'; s = s.replace(/^kab\.\s*/i, ''); }
+  else if (/^kab(?=[A-Z])/.test(s))       { prefix = 'Kabupaten'; s = s.replace(/^kab/, ''); }
+  else if (/^kota\b\.?\s*/i.test(s))      { prefix = 'Kota'; s = s.replace(/^kota\b\.?\s*/i, ''); }
+
+  const titel = s.trim().split(' ').filter(Boolean).map((w) =>
+    /^[A-Z0-9]{2,}$/.test(w) ? w : w.charAt(0).toUpperCase() + w.slice(1).toLowerCase()
+  ).join(' ');
+  return (prefix ? prefix + ' ' : '') + titel;
+}
+
+/* Rapikan nama unit agar varian penulisan tergabung */
+function normUnit(raw) {
+  let u = (raw || '').trim().replace(/\s+/g, ' ');
+  if (!u) return 'Tidak Diketahui';
+  u = u.replace(/^PLN\s*-\s*/i, 'PLN - ')
+       .replace(/^PLN\s+IP\s*-?\s*/i, 'PLN IP - ')
+       .replace(/^PLN\s+NP\s*-?\s*/i, 'PLN NP');
+  // Samakan kapitalisasi kata kunci umum
+  return u.replace(/\bUID\b/gi, 'UID')
+          .replace(/\bUIW\b/gi, 'UIW')
+          .replace(/\bUIP3B\b/gi, 'UIP3B')
+          .replace(/\bUBP\b/gi, 'UBP')
+          .replace(/\bKANTOR PUSAT\b/gi, 'Kantor Pusat');
+}
+
+/* ---------- parser tabel gviz ---------- */
+function parseKdmpTable(table) {
+  const rows = table.rows || [];
+  const out = [];
+  for (const row of rows) {
+    const no = cellNum(row, COL.no);
+    // baris data = punya nomor urut numerik dan ada pemohon/lokasi
+    if (no === null) continue;
+    const pemohon = cellStr(row, COL.pemohon);
+    const lokasi = cellStr(row, COL.lokasi);
+    if (!pemohon && !lokasi) continue;
+
+    const unitRaw = cellStr(row, COL.unit);
+    const persetujuanRaw = cellStr(row, COL.persetujuan);
+    const statusAsetRaw = cellStr(row, COL.statusAset);
+
+    out.push({
+      no,
+      satuan: cellStr(row, COL.satuan),
+      pemohon,
+      lokasi,
+      kota: normKota(cellStr(row, COL.kota)),
+      kotaRaw: cellStr(row, COL.kota),
+      unit: normUnit(unitRaw),
+      unitRaw,
+      kelompok: normKelompok(unitRaw),
+      desa: cellStr(row, COL.desa),
+      maps: cellStr(row, COL.maps),
+      koordinat: cellStr(row, COL.koordinat),
+      luasSertifikat: cellNum(row, COL.luasSertifikat),
+      luasDiminta: cellNum(row, COL.luasDiminta),
+      jenisSertipikat: cellStr(row, COL.jenisSertipikat),
+      jenisSertipikatNorm: normJenisSertipikat(cellStr(row, COL.jenisSertipikat)),
+      nomorSertipikat: cellStr(row, COL.nomorSertipikat),
+      statusAsetRaw,
+      statusAset: normStatusAset(statusAsetRaw),
+      rencana: cellStr(row, COL.rencana),
+      suratPemda: cellStr(row, COL.suratPemda),
+      statusKomunikasi: cellStr(row, COL.statusKomunikasi),
+      komunikasiNorm: normKomunikasi(cellStr(row, COL.statusKomunikasi)),
+      keterangan: cellStr(row, COL.keterangan),
+      nilaiPerM2: cellNum(row, COL.nilaiPerM2),
+      estimasiSewa: cellNum(row, COL.estimasiSewa),
+      pic: cellStr(row, COL.pic),
+      persetujuanRaw,
+      persetujuan: normPersetujuan(persetujuanRaw),
+      progresKontrak: cellStr(row, COL.progresKontrak),
+      progresNorm: normProgres(cellStr(row, COL.progresKontrak))
+    });
+  }
+  return out;
+}
+
+/* ---------- pemuat JSONP ---------- */
+let kdmpCallbackSeq = 0;
+
+function fetchKdmpData({ timeout = 20000 } = {}) {
+  return new Promise((resolve, reject) => {
+    const fnName = `kdmpHandler_${Date.now()}_${kdmpCallbackSeq++}`;
+    const script = document.createElement('script');
+    let done = false;
+
+    const cleanup = () => {
+      delete window[fnName];
+      if (script.parentNode) script.parentNode.removeChild(script);
+      clearTimeout(timer);
+    };
+
+    const timer = setTimeout(() => {
+      if (done) return;
+      done = true;
+      cleanup();
+      reject(new Error('Waktu tunggu habis saat mengambil data dari Google Sheets.'));
+    }, timeout);
+
+    window[fnName] = (resp) => {
+      if (done) return;
+      done = true;
+      cleanup();
+      try {
+        if (!resp || resp.status === 'error') {
+          const msg = resp && resp.errors && resp.errors[0]
+            ? (resp.errors[0].detailed_message || resp.errors[0].message)
+            : 'Respons Google Sheets tidak valid.';
+          reject(new Error(msg));
+          return;
+        }
+        resolve({ rows: parseKdmpTable(resp.table), fetchedAt: new Date() });
+      } catch (err) {
+        reject(err);
+      }
+    };
+
+    script.onerror = () => {
+      if (done) return;
+      done = true;
+      cleanup();
+      reject(new Error('Gagal memuat data. Pastikan sheet dibagikan "Anyone with the link — Viewer".'));
+    };
+
+    const url =
+      `https://docs.google.com/spreadsheets/d/${KDMP_SHEET_ID}/gviz/tq` +
+      `?gid=${KDMP_GID}` +
+      `&headers=0` +
+      `&tqx=responseHandler:${fnName}` +
+      `&cachebust=${Date.now()}`;
+
+    script.src = url;
+    document.head.appendChild(script);
+  });
+}
+
+window.KDMP = { fetchKdmpData, KDMP_SHEET_URL, KDMP_SHEET_ID, KDMP_GID };
